@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import time
+from datetime import datetime
 
 def news_crawler(url):
     resp = requests.get(url=url)
@@ -8,10 +9,6 @@ def news_crawler(url):
 
     text = soup.find('div', id='ch_p').p.text
     return text
-
-
-
-
 
 def check_keywords(input_string):
     # 定義關鍵字清單
@@ -33,7 +30,7 @@ def check_keywords(input_string):
     
     return False  # 如果沒有任何關鍵字，返回 False
 
-def nsa_crawler(nsa, url):
+def nsa_crawler(nsa, url, today):
     resp = requests.get(url=url)
     soup = BeautifulSoup(resp.text, 'html5lib')
 
@@ -44,18 +41,18 @@ def nsa_crawler(nsa, url):
         keyword = check_keywords(title)
         href = 'https://www.msa.gov.cn' + news.a['href']
         publish_time = news.find('span', class_='time').text.strip()
-        if keyword:
-            text = news_crawler(href)
-            info = {
-                'nsa': nsa,
-                'title': title,
-                'publish_time': publish_time,
-                'keyword': keyword,
-                # 'href': href,
-                'text': text
-            }
-            print(info)
-        
+        if publish_time == today:
+            if keyword:
+                text = news_crawler(href)
+                info = {
+                    'nsa': nsa,
+                    'title': title,
+                    'publish_time': publish_time,
+                    'keyword': keyword,
+                    'href': href,
+                    'text': text
+                }
+                print(info)
 
 nsa_dict = {
     '上海海事局': 'https://www.msa.gov.cn/page/openInfo/articleList.do?channelId=94DF14CE-1110-415D-A44E-67593E76619F&pageSize=20&pageNo=1&isParent=0',
@@ -76,9 +73,12 @@ nsa_dict = {
     '江西省地方海事局': 'https://www.msa.gov.cn/page/openInfo/articleList.do?channelId=533B3954-E373-4C81-83E9-7D85B76BC9C5&pageSize=20&pageNo=1&isParent=0'
 }
 
-
+# today = datetime.today().strftime('%Y-%m-%d')
+today = '2025-02-28'
 for key, value in nsa_dict.items():
-    nsa_crawler(key, value)
+    nsa_crawler(key, value, today)
     time.sleep(0.5)
 # nsa_crawler('遼寧海事局', 'https://www.msa.gov.cn/page/openInfo/articleList.do?channelId=C8896863-B101-4C43-8705-536A03EB46FF&pageSize=20&pageNo=1&isParent=0')
 # news_crawler('https://www.msa.gov.cn/page/article.do?articleId=6201EE94-CF85-4EC5-83FE-41B2ACD04752&channelId=C8896863-B101-4C43-8705-536A03EB46FF')
+
+
